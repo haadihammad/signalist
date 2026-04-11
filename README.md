@@ -8,7 +8,11 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License MIT"/>
 </p>
 
-<p align="center"><strong><a href="https://YOUR_DEPLOYMENT_URL_HERE">Live Dashboard →</a></strong></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/haadihammad/signalist/main/assets/dashboard.png" alt="Signalist Dashboard" width="800">
+  <br>
+  <strong><a href="https://your-actual-link-here.com">Live Dashboard →</a></strong>
+</p>  
 
 ## Overview
 
@@ -64,20 +68,6 @@ Signalist/
     ├── __init__.py           # Package marker
     └── portfolio.py          # Long-only backtest, SPY benchmark, metrics, holdings
 ```
-
-## Running locally
-
-1. Clone the repository.
-2. Create and activate a virtual environment.
-3. `pip install -r requirements.txt`
-4. Run the data pipeline: `python data/fetch_data.py` then `python data/clean_data.py`.
-5. `streamlit run app.py`
-
-## Roadmap
-
-- **v2** — Hidden Markov Model regime detection with conditional factor weighting.
-- **v2** — Regime-conditional portfolio construction (Signalist RegimeLens).
-- **v3** — News sentiment factor via lightweight NLP on earnings call transcripts.
 
 ## Limitations
 
