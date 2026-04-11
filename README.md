@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/haadihammad/signalist/main/assets/dashboard.png" alt="Signalist Dashboard" width="800">
   <br>
-  <strong><a href="https://your-actual-link-here.com">Live Dashboard →</a></strong>
+  <strong><a href="https://signalist.streamlit.app/">Live Dashboard →</a></strong>
 </p>  
 
 ## Overview
