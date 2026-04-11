@@ -714,5 +714,5 @@ else:
     st.markdown(
         "Signalist is an open-source quantitative research project exploring cross-sectional factor investing in "
         "top US equities. Built as an independent research initiative. Source code available on GitHub at "
-        "`YOUR_GITHUB_REPO_URL_PLACEHOLDER`."
+        "<a href='https://github.com/haadihammad/signalist'>github.com/haadihammad/signalist</a>"
     )
