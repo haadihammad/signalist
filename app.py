@@ -10,7 +10,12 @@ import run_pipeline
 from factors.composite import compute_composite
 
 
-st.set_page_config(page_title="Signalist", layout="wide", page_icon="S")
+st.set_page_config(
+    page_title="Signalist",
+    layout="wide",
+    page_icon="S",
+    initial_sidebar_state="expanded",
+)
 
 st.markdown(
     """
@@ -19,16 +24,6 @@ st.markdown(
 
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    /* Keep header visible so the default sidebar open/close control remains usable */
-    [data-testid="stHeader"] {
-        background-color: #f1efe2;
-    }
-    [data-testid="stDecoration"] {
-        display: none;
-    }
-    [data-testid="stToolbar"] {
-        visibility: visible;
-    }
     [data-testid="stDeployButton"] {
         display: none;
     }
@@ -116,6 +111,24 @@ st.markdown(
         background: #ffffff;
         padding: 4px;
     }
+    /* Hide header chrome; sidebar stays expanded with no collapse control */
+    [data-testid="stHeader"] {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+    }
+    [data-testid="stToolbar"] {
+        display: none !important;
+    }
+    [data-testid="stDecoration"] {
+        display: none !important;
+    }
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="stExpandSidebarButton"] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -150,9 +163,23 @@ def _load_monthly_csv(path: str) -> pd.DataFrame:
 def load_data():
     root = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(root, "data")
-    monthly_prices = _load_monthly_csv(os.path.join(data_dir, "monthly_prices.csv"))
-    monthly_returns = _load_monthly_csv(os.path.join(data_dir, "monthly_returns.csv"))
-    monthly_volume = _load_monthly_csv(os.path.join(data_dir, "monthly_volume.csv"))
+    monthly_prices_path = os.path.join(data_dir, "monthly_prices.csv")
+    monthly_returns_path = os.path.join(data_dir, "monthly_returns.csv")
+    monthly_volume_path = os.path.join(data_dir, "monthly_volume.csv")
+
+    if not (
+        os.path.isfile(monthly_prices_path)
+        and os.path.isfile(monthly_returns_path)
+        and os.path.isfile(monthly_volume_path)
+    ):
+        from data import clean_data, fetch_data
+
+        fetch_data.main()
+        clean_data.main()
+
+    monthly_prices = _load_monthly_csv(monthly_prices_path)
+    monthly_returns = _load_monthly_csv(monthly_returns_path)
+    monthly_volume = _load_monthly_csv(monthly_volume_path)
 
     factor_data = compute_composite(monthly_prices, monthly_returns, monthly_volume)
     results = run_pipeline.main()
@@ -169,55 +196,62 @@ def _as_series(x, fallback_index=None) -> pd.Series:
     return pd.Series(index=fallback_index, dtype=float)
 
 
-factor_data, results = load_data()
-composite_rank = factor_data.get("composite_rank", pd.DataFrame())
+try:
+    with st.spinner("Loading Signalist data..."):
+        factor_data, results = load_data()
+    composite_rank = factor_data.get("composite_rank", pd.DataFrame())
 
-portfolio_returns = _as_series(results.get("portfolio_returns"))
-spy_returns = _as_series(results.get("spy_returns"), fallback_index=portfolio_returns.index)
-if spy_returns.empty and not portfolio_returns.empty:
-    spy_returns = pd.Series(index=portfolio_returns.index, dtype=float)
+    portfolio_returns = _as_series(results.get("portfolio_returns"))
+    spy_returns = _as_series(results.get("spy_returns"), fallback_index=portfolio_returns.index)
+    if spy_returns.empty and not portfolio_returns.empty:
+        spy_returns = pd.Series(index=portfolio_returns.index, dtype=float)
 
-cumulative_portfolio = _as_series(
-    results.get("cumulative_portfolio"),
-    fallback_index=portfolio_returns.index,
-)
-if cumulative_portfolio.empty and not portfolio_returns.empty:
-    cumulative_portfolio = (1.0 + portfolio_returns).cumprod()
+    cumulative_portfolio = _as_series(
+        results.get("cumulative_portfolio"),
+        fallback_index=portfolio_returns.index,
+    )
+    if cumulative_portfolio.empty and not portfolio_returns.empty:
+        cumulative_portfolio = (1.0 + portfolio_returns).cumprod()
 
-cumulative_spy = _as_series(results.get("cumulative_spy"), fallback_index=spy_returns.index)
-if cumulative_spy.empty and not spy_returns.empty:
-    cumulative_spy = (1.0 + spy_returns).cumprod()
+    cumulative_spy = _as_series(results.get("cumulative_spy"), fallback_index=spy_returns.index)
+    if cumulative_spy.empty and not spy_returns.empty:
+        cumulative_spy = (1.0 + spy_returns).cumprod()
 
-annualized_portfolio = float(results.get("annualized_portfolio", np.nan))
-if np.isnan(annualized_portfolio) and not portfolio_returns.empty:
-    annualized_portfolio = float((1 + portfolio_returns).prod() ** (12 / len(portfolio_returns)) - 1)
+    annualized_portfolio = float(results.get("annualized_portfolio", np.nan))
+    if np.isnan(annualized_portfolio) and not portfolio_returns.empty:
+        annualized_portfolio = float((1 + portfolio_returns).prod() ** (12 / len(portfolio_returns)) - 1)
 
-annualized_spy = float(results.get("annualized_spy", np.nan))
-if np.isnan(annualized_spy) and not spy_returns.empty:
-    annualized_spy = float((1 + spy_returns).prod() ** (12 / len(spy_returns)) - 1)
+    annualized_spy = float(results.get("annualized_spy", np.nan))
+    if np.isnan(annualized_spy) and not spy_returns.empty:
+        annualized_spy = float((1 + spy_returns).prod() ** (12 / len(spy_returns)) - 1)
 
-sharpe_portfolio = float(results.get("sharpe_portfolio", np.nan))
-sharpe_spy = float(results.get("sharpe_spy", np.nan))
-max_drawdown_portfolio = float(results.get("max_drawdown_portfolio", np.nan))
-max_drawdown_spy = float(results.get("max_drawdown_spy", np.nan))
-rolling_sharpe = _as_series(results.get("rolling_sharpe"), fallback_index=portfolio_returns.index)
-ic_series = _as_series(results.get("ic_series"))
-mean_ic = float(results.get("mean_ic", np.nan))
-if np.isnan(mean_ic) and not ic_series.empty:
-    mean_ic = float(ic_series.mean(skipna=True))
+    sharpe_portfolio = float(results.get("sharpe_portfolio", np.nan))
+    sharpe_spy = float(results.get("sharpe_spy", np.nan))
+    max_drawdown_portfolio = float(results.get("max_drawdown_portfolio", np.nan))
+    max_drawdown_spy = float(results.get("max_drawdown_spy", np.nan))
+    rolling_sharpe = _as_series(results.get("rolling_sharpe"), fallback_index=portfolio_returns.index)
+    ic_series = _as_series(results.get("ic_series"))
+    mean_ic = float(results.get("mean_ic", np.nan))
+    if np.isnan(mean_ic) and not ic_series.empty:
+        mean_ic = float(ic_series.mean(skipna=True))
 
-monthly_holdings = results.get("monthly_holdings", pd.Series(dtype=object))
-if isinstance(monthly_holdings, dict):
-    monthly_holdings = pd.Series(monthly_holdings)
-if not isinstance(monthly_holdings, pd.Series):
-    monthly_holdings = pd.Series(dtype=object)
-if monthly_holdings.index.dtype == object and len(monthly_holdings.index) > 0:
-    monthly_holdings.index = pd.to_datetime(monthly_holdings.index)
-monthly_holdings = monthly_holdings.sort_index()
+    monthly_holdings = results.get("monthly_holdings", pd.Series(dtype=object))
+    if isinstance(monthly_holdings, dict):
+        monthly_holdings = pd.Series(monthly_holdings)
+    if not isinstance(monthly_holdings, pd.Series):
+        monthly_holdings = pd.Series(dtype=object)
+    if monthly_holdings.index.dtype == object and len(monthly_holdings.index) > 0:
+        monthly_holdings.index = pd.to_datetime(monthly_holdings.index)
+    monthly_holdings = monthly_holdings.sort_index()
 
-momentum_raw = factor_data.get("momentum_raw", factor_data.get("momentum", pd.DataFrame()))
-reversion_raw = factor_data.get("reversion_raw", factor_data.get("reversion", pd.DataFrame()))
-volume_raw = factor_data.get("volume_raw", factor_data.get("volume", pd.DataFrame()))
+    momentum_raw = factor_data.get("momentum_raw", factor_data.get("momentum", pd.DataFrame()))
+    reversion_raw = factor_data.get("reversion_raw", factor_data.get("reversion", pd.DataFrame()))
+    volume_raw = factor_data.get("volume_raw", factor_data.get("volume", pd.DataFrame()))
+except Exception:
+    st.error(
+        "Data pipeline error — please run run_pipeline.py first and ensure all CSV files exist in the data/ folder."
+    )
+    st.stop()
 
 PAGES = ["Overview", "Factor Analysis", "Portfolio", "Risk", "Methodology"]
 
@@ -239,7 +273,6 @@ with st.sidebar:
         "Rebalance: Monthly</div>",
         unsafe_allow_html=True,
     )
-
 
 if page == "Overview":
     st.markdown("<div class='ec-overline'>Equity Factor Research · 2020–2024</div>", unsafe_allow_html=True)
@@ -323,6 +356,10 @@ if page == "Overview":
     fig_cum.update_yaxes(showgrid=True, gridcolor="#eeeeee")
     apply_economist_theme(fig_cum, "Cumulative returns — strategy vs benchmark")
     st.plotly_chart(fig_cum, use_container_width=True)
+    st.caption(
+        "Signalist v1 · Three-factor equity model · Universe: 48 S&P 500 constituents · "
+        "Period: 2020–2024 · Built by Haadi Hammad"
+    )
     st.markdown(
         "<div style='font-size:11px; color:#666666; font-style:italic;'>"
         "Source: Yahoo Finance via yfinance · Equal-weighted top-decile portfolio · Monthly rebalance"
@@ -584,17 +621,38 @@ elif page == "Risk":
     vol_threshold = reg_df["spy_vol_3m"].quantile(0.75)
     if len(reg_df) > 0 and np.isfinite(vol_threshold):
         reg_df["regime"] = np.where(reg_df["spy_vol_3m"] > vol_threshold, "High Vol", "Normal")
-        reg_df["color"] = np.where(reg_df["regime"] == "High Vol", "#E3120B", "#1a1a1a")
+        high_vol_mask = reg_df["regime"] == "High Vol"
+        normal_mask = ~high_vol_mask
 
-        fig_reg = go.Figure(
+        fig_reg = go.Figure()
+        fig_reg.add_trace(
             go.Bar(
-                x=reg_df.index,
-                y=reg_df["portfolio"],
-                marker_color=reg_df["color"],
-                name="Portfolio Return",
+                x=reg_df.index[high_vol_mask],
+                y=reg_df.loc[high_vol_mask, "portfolio"],
+                marker_color="#E3120B",
+                name="High Volatility",
+            )
+        )
+        fig_reg.add_trace(
+            go.Bar(
+                x=reg_df.index[normal_mask],
+                y=reg_df.loc[normal_mask, "portfolio"],
+                marker_color="#1a1a1a",
+                name="Normal",
             )
         )
         apply_economist_theme(fig_reg, "Monthly returns by volatility regime")
+        fig_reg.update_layout(
+            barmode="overlay",
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                bgcolor="#ffffff",
+                bordercolor="#cccccc",
+                borderwidth=1,
+            ),
+        )
         st.plotly_chart(fig_reg, use_container_width=True)
     else:
         st.info("Insufficient data for volatility regime chart.")
@@ -651,4 +709,10 @@ else:
     )
     st.markdown(
         "**Signalist v2 will introduce regime-conditional factor weighting using Hidden Markov Model market state classification. This extension is currently in development.**"
+    )
+    st.markdown("<div class='ec-chart-title'>About</div>", unsafe_allow_html=True)
+    st.markdown(
+        "Signalist is an open-source quantitative research project exploring cross-sectional factor investing in "
+        "top US equities. Built as an independent research initiative. Source code available on GitHub at "
+        "`YOUR_GITHUB_REPO_URL_PLACEHOLDER`."
     )
