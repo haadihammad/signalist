@@ -356,9 +356,9 @@ if page == "Overview":
     fig_cum.update_yaxes(showgrid=True, gridcolor="#eeeeee")
     apply_economist_theme(fig_cum, "Cumulative returns — strategy vs benchmark")
     st.plotly_chart(fig_cum, use_container_width=True)
-    st.caption(
-        "Signalist v1 · Three-factor equity model · Universe: 48 S&P 500 constituents · "
-        "Period: 2020–2024 · Built by Haadi Hammad"
+    st.markdown(
+        "<div style='color:#1a1a1a; font-weight:700; font-size:19px;'>Signalist v1 · Three-factor equity model · Universe: 48 S&P 500 constituents · Period: 2020–2024 · Built by Haadi Hammad</div>",
+        unsafe_allow_html=True,
     )
     st.markdown(
         "<div style='font-size:11px; color:#666666; font-style:italic;'>"
