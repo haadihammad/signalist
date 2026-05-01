@@ -148,8 +148,8 @@ def apply_economist_theme(fig: go.Figure, title: str) -> go.Figure:
         legend=dict(bgcolor="#ffffff", bordercolor="#cccccc", borderwidth=1),
         margin=dict(l=40, r=40, t=50, b=40),
     )
-    fig.update_xaxes(gridcolor="#eeeeee", linecolor="#1a1a1a")
-    fig.update_yaxes(gridcolor="#eeeeee", linecolor="#1a1a1a")
+    fig.update_xaxes(gridcolor="#eeeeee", linecolor="#1a1a1a", tickfont=dict(color="#1a1a1a"), title_font=dict(color="#1a1a1a"))
+    fig.update_yaxes(gridcolor="#eeeeee", linecolor="#1a1a1a", tickfont=dict(color="#1a1a1a"), title_font=dict(color="#1a1a1a"))
     return fig
 
 
