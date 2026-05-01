@@ -707,10 +707,7 @@ else:
         "interpreted as indicative of future performance.</div>",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        "**Signalist v2 will introduce regime-conditional factor weighting using Hidden Markov Model market state classification. This extension is currently in development.**"
-    )
-    st.markdown("<div class='ec-chart-title'>About</div>", unsafe_allow_html=True)
+    
     st.markdown(
         "<div style='color:#1a1a1a; font-weight:600;'>Signalist v2 will introduce regime-conditional factor weighting using Hidden Markov Model market state classification. This extension is currently in development.</div>",
         unsafe_allow_html=True,
