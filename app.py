@@ -712,7 +712,14 @@ else:
     )
     st.markdown("<div class='ec-chart-title'>About</div>", unsafe_allow_html=True)
     st.markdown(
-        "Signalist is an open-source quantitative research project exploring cross-sectional factor investing in "
-        "top US equities. Built as an independent research initiative. Source code available on GitHub at "
-        "<a href='https://github.com/haadihammad/signalist'>github.com/haadihammad/signalist</a>"
+        "<div style='color:#1a1a1a; font-weight:600;'>Signalist v2 will introduce regime-conditional factor weighting using Hidden Markov Model market state classification. This extension is currently in development.</div>",
+        unsafe_allow_html=True,
     )
+    st.markdown("<div class='ec-chart-title'>About</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div style='color:#1a1a1a; font-size:13px;'>Signalist is an open-source quantitative research project exploring cross-sectional factor investing in "
+        "top US equities. Built as an independent research initiative. Source code available on GitHub at "
+        "<a href='https://github.com/haadihammad/signalist' style='color:#E3120B;'>github.com/haadihammad/signalist</a>"
+        "</div>",
+        unsafe_allow_html=True,
+)
