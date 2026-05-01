@@ -570,6 +570,8 @@ elif page == "Risk":
     )
     fig_dd.add_hline(y=0, line_color="#cccccc", line_dash="dash")
     apply_economist_theme(fig_dd, "Drawdown — strategy vs benchmark")
+    fig_dd.update_xaxes(tickfont=dict(color="#1a1a1a"), color="#1a1a1a")
+    fig_dd.update_yaxes(tickfont=dict(color="#1a1a1a"), color="#1a1a1a")
     st.plotly_chart(fig_dd, use_container_width=True)
 
     c1, c2 = st.columns(2)
@@ -602,6 +604,8 @@ elif page == "Risk":
                 )
             )
             apply_economist_theme(fig_sc, "Strategy returns vs benchmark returns")
+            fig_sc.update_xaxes(tickfont=dict(color="#1a1a1a"), title_font=dict(color="#1a1a1a"), title_text="SPY Monthly Return", color="#1a1a1a")
+            fig_sc.update_yaxes(tickfont=dict(color="#1a1a1a"), title_font=dict(color="#1a1a1a"), title_text="Strategy Monthly Return", color="#1a1a1a")
             st.plotly_chart(fig_sc, use_container_width=True)
         else:
             st.info("Not enough overlapping portfolio and SPY returns for scatter plot.")
@@ -611,6 +615,8 @@ elif page == "Risk":
         fig_box.add_trace(go.Box(y=portfolio_returns.dropna(), name="Portfolio", marker_color="#1a1a1a"))
         fig_box.add_trace(go.Box(y=spy_returns.dropna(), name="SPY", marker_color="#E3120B"))
         apply_economist_theme(fig_box, "Return distribution comparison")
+        fig_box.update_xaxes(tickfont=dict(color="#1a1a1a"), color="#1a1a1a")
+        fig_box.update_yaxes(tickfont=dict(color="#1a1a1a"), color="#1a1a1a")
         st.plotly_chart(fig_box, use_container_width=True)
 
     reg_df = pd.concat(
@@ -642,6 +648,8 @@ elif page == "Risk":
             )
         )
         apply_economist_theme(fig_reg, "Monthly returns by volatility regime")
+        fig_reg.update_xaxes(tickfont=dict(color="#1a1a1a"), color="#1a1a1a")
+        fig_reg.update_yaxes(tickfont=dict(color="#1a1a1a"), color="#1a1a1a")
         fig_reg.update_layout(
             barmode="overlay",
             legend=dict(
